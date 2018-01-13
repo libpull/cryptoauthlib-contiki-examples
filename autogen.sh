@@ -25,7 +25,7 @@ for dir in $(cd $PATCHDIR && find * -type d -print); do
         patch=$PWD/$f
         echo "Applying patch: $patch"
         (cd ext/$dir/
-        git am $patch
+        git apply $patch
         )
     done
 done

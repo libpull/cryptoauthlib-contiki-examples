@@ -1,25 +1,21 @@
+# Set up the Sensortag cc2650 as default board
 ifndef $(TARGET)
 	TARGET=srf06-cc26xx
 	BOARD=sensortag/cc2650
 endif
 
 CONTIKI_PROJECT=runner
-all: runner
+all: $(CONTIKI_PROJECT)
 
-#crypto:
-#	(cd cryptoauthlib/lib/ && make cryptolib CC="$(CC)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)")
-#CFLAGS+=-Icryptoauthlib/lib/ 
-#LDFLAGS+=cryptoauthlib/lib/.build/libatca.a
+CAUTHLIB_DIR = ext/cryptoauthlib/cryptoauthlib/lib/
+PROJECTDIRS += $(CAUTHLIB_DIR) $(CAUTHLIB_DIR)/basic $(CAUTHLIB_DIR)/host $(CAUTHLIB_DIR)/hal
+PROJECT_SOURCEFILES += $(notdir $(wildcard $(CAUTHLIB_DIR)/*.c $(CAUTHLIB_DIR)/basic/*.c $(CAUTHLIB_DIR)/host/*.c))
+PROJECT_SOURCEFILES += atca_hal.c
+CFLAGS +=-DATCA_HAL_I2C
 
-CAUTHLIB_DIR = cryptoauthlib/lib/
-CAUTHLIB_FILES = $(notdir $(wildcard $(CAUTHLIB_DIR)/*.c $(CAUTHLIB_DIR)/basic/*.c $(CAUTHLIB_DIR)/host/*.c))
-CAUTHLIB_FILES += hal_cc2650_i2c.c atca_hal.c
-CAUTHLIB_DIRS = $(CAUTHLIB_DIR) $(CAUTHLIB_DIR)/basic $(CAUTHLIB_DIR)/host $(CAUTHLIB_DIR)/hal
+PROJECTDIRS += ext/cryptoauthlib/hal
+PROJECT_SOURCEFILES += hal_cc2650_i2c_contiki.c hal_cc2650_timer_contiki.c
 
-CFLAGS+=-DATCA_HAL_I2C
-
-PROJECTDIRS += $(CAUTHLIB_DIRS)
-PROJECT_SOURCEFILES += $(CAUTHLIB_FILES)
-
+# Include Contiki-NG makefile
 CONTIKI=ext/contiki-ng
 include $(CONTIKI)/Makefile.include
