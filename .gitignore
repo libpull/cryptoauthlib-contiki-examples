@@ -1,0 +1,7 @@
+ext/
+*.bin
+*.elf
+*.hex
+*.srf06-cc26xx
+*.map
+obj_srf06-cc26xx
