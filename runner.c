@@ -2,136 +2,84 @@
 #include <stdlib.h>
 #include <string.h>
 #include "contiki.h"
-#include "dev/button-sensor.h"
-#include "leds.h"
-#include "board-i2c.h"
 #include "cryptoauthlib.h"
-#include "button-sensor.h"
-#include "board-peripherals.h"
-#include "watchdog.h"
-
-
-//#include "../pull-iot/test/support/sample_data.h"
+#include "sample_data.h"
 
 PROCESS(runner, "Runner For CryptoAuthenticator");
 AUTOSTART_PROCESSES(&runner);
 
-static struct etimer et;
-
-ATCAIfaceCfg cfg_sha204a_g = {
-    .iface_type             = ATCA_I2C_IFACE,
-    .devtype                = ATSHA204A,
-    .atcai2c.slave_address  = 0xC8,
-    .atcai2c.bus            = 0,
-    .atcai2c.baud           = 400000,
-    .wake_delay             = 2560,
-    .rx_retries             = 20
-};
-
- ATCAIfaceCfg cfg_ateccx08a_g = {
-    .iface_type             = ATCA_I2C_IFACE,
-    .devtype                = ATECC508A,
-    .atcai2c.baud           = 400000,
-    .atcai2c.slave_address  = 0xC0,
-    .atcai2c.bus            = 2,
-    //.atcai2c.baud = 100000,
-    .wake_delay             = 1500,
-    .rx_retries             = 20
-};
 int try = 10;
 ATCA_STATUS status;
 
-uint8_t data_g[128] = {
-0x69,0x63,0x6f,0x61,0x69,0x63,0x6f,0x61,0x63,0x0a,0x61,0x69,0x63,0x6f,0x61,0x69,
-0x0a,0x6f,0x69,0x63,0x6f,0x61,0x69,0x63,0x6f,0x61,0x63,0x0a,0x61,0x69,0x63,0x6f,
-0x61,0x69,0x0a,0x6f,0x69,0x63,0x6f,0x61,0x69,0x63,0x6f,0x61,0x63,0x0a,0x61,0x69,
-0x63,0x6f,0x61,0x69,0x0a,0x6f,0x69,0x63,0x6f,0x61,0x69,0x63,0x6f,0x61,0x63,0x0a,
-0x61,0x69,0x63,0x6f,0x61,0x69,0x0a,0x6f,0x69,0x63,0x6f,0x61,0x69,0x63,0x6f,0x61,
-0x63,0x0a,0x61,0x69,0x63,0x6f,0x61,0x69,0x0a,0x6f,0x69,0x63,0x6f,0x61,0x69,0x63,
-0x6f,0x61,0x63,0x0a,0x61,0x69,0x63,0x6f,0x61,0x69,0x0a,0x6f,0x69,0x63,0x6f,0x61,
-0x69,0x63,0x6f,0x61,0x63,0x0a,0x61,0x69,0x63,0x6f,0x61,0x69,0x0a,0x6f,0x0a,0x63
-};
-
-uint8_t hash_g[32] = {
-0x64,0x7e,0xb2,0x50,0x14,0x32,0xad,0x62,0x9d,0x31,0x42,0x7d,0x04,0xc6,0xe9,0x56,
-0x44,0xcb,0x94,0xfa,0xcf,0x34,0xc0,0x6f,0xd9,0x5c,0x83,0x32,0x3c,0x74,0x9f,0x3e
-};
-
-/*static uint8_t public[64] = {
-    0x8b,0x27,0x39,0x67,0x01,0x4b,0x1c,0xae,0xfe,0x8a,0x18,0x6e,0xea,0x27,0x86,0x34,
-    0x0e,0xea,0x35,0x3d,0x8c,0x65,0xf6,0x59,0xfc,0xcb,0x23,0xd7,0xfa,0xab,0x7b,0x18,
-    0x14,0x75,0x33,0xec,0x17,0xb7,0x54,0x50,0xca,0x98,0x35,0xad,0x58,0xbe,0xd5,0xfa,
-    0x48,0xbc,0xa0,0x24,0x81,0xba,0xfa,0x3d,0xcd,0x8d,0x5a,0x7f,0x40,0xbc,0x70,0x94
-};
-
-static uint8_t signature[64] = {
-    0xa6,0xf1,0xe1,0xa8,0x2f,0x7c,0x1e,0x63,0x67,0x10,0xc7,0x18,0xbf,0x22,0x51,0x08,
-    0xb7,0x0a,0x93,0xcf,0x47,0xad,0xac,0xb9,0xa4,0xc4,0xe0,0x1f,0xfe,0x5c,0x43,0x9f,
-    0x7f,0xf6,0x77,0x2e,0x24,0x69,0xe8,0x9f,0x96,0x9c,0x65,0x2b,0xed,0x08,0x52,0xeb,
-    0xa4,0x56,0x57,0x29,0x85,0x1e,0x21,0xf8,0x9c,0xd9,0x4f,0xc7,0x62,0x99,0x5f,0xcb//0xcb
-};
-*/
-
-void calculate() {
-    do {
+void test_serial() {
     uint8_t serial[9];
     status = atcab_read_serial_number(serial);
     if (status != ATCA_SUCCESS) {
         printf("read_serial failed\n");
-        break;
+        return;
     }
-    printf("Serial-number is %#x %#x %#x %#x\n", serial[0], serial[1], serial[2], serial[3]);
+    printf("Serial-number is %#x %#x %#x %#x\n", 
+            serial[0], serial[1], serial[2], serial[3]);
+}
+
+void test_digest() {
     uint8_t hash[ATCA_SHA2_256_DIGEST_SIZE];
     atca_sha256_ctx_t ctx;
     status = atcab_hw_sha2_256_init(&ctx);
-    printf("Status: %x\n", status);
     if (status != ATCA_SUCCESS) {
         printf("Error in sha init\n");
-        break;
+        return;
     }
     status = atcab_hw_sha2_256_update(&ctx, data_g, 128);
     if (status != ATCA_SUCCESS) {
         printf("Error in sha update\n");
-        break;
+        return;
     }
     status = atcab_hw_sha2_256_finish(&ctx, hash);
     if (status != ATCA_SUCCESS) {
-        printf("Error in sha update\n");
-        break;
+        printf("Error in sha finish\n");
+        return;
     }
-    if (memcmp(hash, hash_g, 32) != 0) {
-        printf("The hash calculated is not valid\n");
-    } else {
-        printf("Hash correctly calculated\n");
-    }
-    /*bool is_verified = false;
-    atcab_verify_extern(hash, signature, public, &is_verified);
-    printf("Verification %s\n", is_verified? "passed":"failed");*/
-    } while (0);
+    int result = memcmp(hash, hash_g, 32);
+    printf("Digest calculation: %s\n", result == 0? "success": "failed");
 }
 
+void test_ecdsa() {
+    /* Verify the pre calculated hash */
+    bool is_verified = true;
+    status = atcab_verify_extern(hash_g, sig_g, pub_g, &is_verified);
+    if (status != ATCA_SUCCESS) {
+        printf("Error in verify extern\n");
+        return;
+    }
+    printf("Verification %s\n", is_verified == true? "passed":"failed");
+}
 
-int i = 0;
 PROCESS_THREAD(runner, ev, data)
 {
     PROCESS_BEGIN();
-    etimer_set(&et, CLOCK_SECOND);
-    while (ev != PROCESS_EVENT_TIMER) {
-        PROCESS_YIELD();
-    }
-    status = atcab_init(&cfg_ateccx08a_g);
-    //status = atcab_init(&cfg_sha204a_g);
-    if (status != ATCA_SUCCESS) {
-        printf("Init failed\n");
-        break;
-    }
-    calculate();
+    do {
+        /* Test the SHA204a */
+        status = atcab_init(&cfg_atsha204a_i2c_default);
+        if (status != ATCA_SUCCESS) {
+            printf("Init failed\n");
+            break;
+        }
+        test_serial();
+        test_digest();
+        /* Test the ECC508a */
+        status = atcab_init(&cfg_ateccx08a_i2c_default);
+        if (status != ATCA_SUCCESS) {
+            printf("Init failed\n");
+            break;
+        }
+        test_serial();
+        test_digest();
+        test_ecdsa();
+    } while(0);
+    /* Do not reboot the device */
     while(1) {
         PROCESS_YIELD();
-    	if (data ==  &button_left_sensor) {
-		printf("Sending wake up sequence %d\n", i++);
-		calculate();
-    	}
     }
     PROCESS_END();
 }
