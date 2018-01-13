@@ -14,7 +14,12 @@ PROJECT_SOURCEFILES += atca_hal.c
 CFLAGS +=-DATCA_HAL_I2C
 
 PROJECTDIRS += ext/cryptoauthlib/hal
+HAL=cc2650
+ifeq ($(HAL),cc2650-contiki)
 PROJECT_SOURCEFILES += hal_cc2650_i2c_contiki.c hal_cc2650_timer_contiki.c
+else ifeq ($(HAL),cc2650)
+PROJECT_SOURCEFILES += hal_cc2650_i2c.c hal_cc2650_timer_contiki.c
+endif
 
 # Include Contiki-NG makefile
 CONTIKI=ext/contiki-ng
